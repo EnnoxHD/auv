@@ -1,0 +1,184 @@
+# Use official `Arch Linux` Docker image
+FROM docker.io/archlinux/archlinux:base-devel
+
+# Init `pacman` keyring and populate it
+RUN pacman-key --init && pacman-key --populate
+
+# Configure signature checking (https://man.archlinux.org/man/pacman.conf.5#PACKAGE_AND_DATABASE_SIGNATURE_CHECKING)
+# Disabled signature checking avoids possible GPG errors
+# E. g. keyserver is down or the key is expired, firewall blocks the connection etc.
+RUN sed -i '/^SigLevel.*=/s/^.*$/SigLevel = Never/' /etc/pacman.conf
+
+# Disable `CheckSpace`
+# Enable `multilib` repository
+# Remove `NoExtract`
+# Enable `Color`
+# in `pacman.conf`
+RUN sed -i '/CheckSpace/s/^.*$/#CheckSpace/' /etc/pacman.conf && \
+    echo -e "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf && \
+    sed -i '/NoExtract/d' /etc/pacman.conf && \
+    sed -i '/#Color/s/^.*$/Color/' /etc/pacman.conf
+
+# Set mirror for `pacman` until we fetch the best mirrors using `reflector`
+RUN echo "Server = https://geo.mirror.pkgbuild.com/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
+
+# Update system using `pacman` while (re-)installing [`reflector`, `pacman-contrib`, `archlinux-keyring`] and fetch the best mirrors using `reflector`
+RUN pacman -Syyuu --overwrite \* --ask=4 reflector pacman-contrib archlinux-keyring && yes | pacman -Scc && \
+    reflector --save /etc/pacman.d/mirrorlist --sort rate --completion-percent 100 --score 15 --fastest 2
+
+# Update system using `pacman` (again) and reinstall all packages afterwards
+RUN pacman -Syyuu --overwrite \* --ask=4 && pacman -Qqn | pacman -S --overwrite \* --ask=4 - && yes | pacman -Scc
+
+# UID and GID will be overridden via --build-arg from the Python helper
+ARG UID
+ARG GID
+# Create user `pod` and give `sudo` privileges without having to enter a password
+RUN groupadd -g $GID -o pod
+RUN useradd -m -u $UID -g $GID -o -N -s /bin/bash pod
+RUN echo 'pod ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# Set passwords of users - password is the same as the username
+RUN echo "root:root" | chpasswd
+RUN echo "pod:pod" | chpasswd
+
+# Enable Chaotic-AUR unofficial user repository
+# This allows to install AUR packages via `pacman` without building them
+# `aurman` is used to build and install AUR packages later in this Containerfile
+# https://wiki.archlinux.org/title/unofficial_user_repositories
+# https://aur.chaotic.cx/
+RUN pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com && pacman-key --lsign-key FBA220DFC880C036 \
+    && yes | pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst' 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst' \
+    && echo -e "\n[chaotic-aur]\nInclude = /etc/pacman.d/chaotic-mirrorlist" >> /etc/pacman.conf
+
+# Install packages using `pacman`
+COPY /software/x86_64/pacman /pacman_x86_64
+RUN pacman -Syu --overwrite \* --ask=5 --needed \
+    $(eval echo $(sed 's/#.*$//' /pacman_x86_64)) \
+    && yes | pacman -Scc
+
+# Disable Chaotic-AUR unofficial user repository
+RUN sed -i '/\[chaotic-aur\]/{N;s/^/#/;s/\n/\n#/;}' /etc/pacman.conf
+
+# Enabling using of all CPU cores for building packages (parallel compilation)
+# Disable compression of built packages
+# in `makepkg.conf`
+# Notice: Parallel compilation can lead to problems with building some packages due to race conditions
+#         https://wiki.archlinux.org/title/makepkg#Parallel_compilation
+RUN sed -i '/MAKEFLAGS=/s/^.*$/MAKEFLAGS="-j\$(nproc)"/' /etc/makepkg.conf && \
+    sed -i '/PKGEXT=/s/^.*$/PKGEXT=".pkg.tar"/' /etc/makepkg.conf
+
+# ----- `LightDM` setup START -----
+# Set `minimum-display-number` and `minimum-vt` to avoid conflicts with the host system
+# Set `greeter-session` to use the default GTK greeter
+# Set `autologin-user` and `autologin-session` to automatically login into the system
+# in `lightdm.conf`
+RUN sed -i '/minimum-display-number=/s/^.*$/minimum-display-number=9/' /etc/lightdm/lightdm.conf && \
+    sed -i '/minimum-vt=/s/^.*$/minimum-vt=9/' /etc/lightdm/lightdm.conf && \
+    sed -i '/greeter-session=/s/^.*$/greeter-session=lightdm-gtk-greeter/' /etc/lightdm/lightdm.conf && \
+    sed -i '/autologin-user=/s/^.*$/autologin-user=pod/' /etc/lightdm/lightdm.conf && \
+    sed -i '/autologin-session=/s/^.*$/autologin-session=xfce/' /etc/lightdm/lightdm.conf
+
+# Create group needed for autologin and put `pod` user into it
+RUN groupadd -r autologin && gpasswd -a pod autologin
+
+# Set `de` keymap
+RUN echo "LANG=de" > /etc/vconsole.conf
+COPY /containerfiles/00-keyboard.conf /etc/X11/xorg.conf.d/00-keyboard.conf
+# ----- `LightDM` setup END -----
+
+# ----- `systemd` setup START -----
+# Set entrypoint for `systemd`
+ENTRYPOINT ["/sbin/init"]
+
+# Setup time zone to allow starting of `systemd` without user intervention
+RUN ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+
+# Autologin of `pod` user
+# https://wiki.archlinux.org/index.php?title=Getty#Nspawn_console
+RUN mkdir -p /etc/systemd/system/console-getty.service.d
+COPY /containerfiles/autologin.conf /etc/systemd/system/console-getty.service.d/autologin.conf
+
+# Don't spawn TTYs
+# https://www.freedesktop.org/software/systemd/man/systemd-getty-generator.html
+RUN systemctl mask getty@.service
+RUN systemctl mask serial-getty@.service
+RUN systemctl mask container-getty@.service
+
+# Execute `/entrypoint.sh` at boot
+COPY /containerfiles/entrypoint.service /etc/systemd/system/entrypoint.service
+RUN systemctl enable entrypoint.service
+
+# DISPLAY will be overridden via --build-arg from the Python helper
+ARG DISPLAY
+# export DISPLAY environment variable that was used during building of this image
+RUN echo "[ -z \"\$DISPLAY\" ] && [ ! -z \"$DISPLAY\" ] && export DISPLAY=$DISPLAY" > /etc/profile.d/display.sh
+RUN chmod 555 /etc/profile.d/display.sh
+# ----- `systemd` setup END -----
+
+# ----- `mdev` setup START -----
+# `mdev` allows hot plugging of devices
+# http://lists.busybox.net/pipermail/busybox/2019-June/087305.html
+# tl;dr `mdev -d`
+
+# Default value for devices is `root:root 770`
+RUN echo ".* root:root 770" > /etc/mdev.conf
+
+# Execute `mdev -d` at boot
+COPY /containerfiles/mdev.service /etc/systemd/system/mdev.service
+RUN systemctl enable mdev.service
+# ----- `mdev` setup END -----
+
+# ----- `x2go` setup START -----
+# https://wiki.archlinux.org/title/X2Go
+# Enable `X11 forwarding`
+# Change default `ssh` port to 5910
+# in `sshd_config` and enable `ssh`
+RUN sed -i '/#X11Forwarding/s/^.*$/X11Forwarding yes/' /etc/ssh/sshd_config && \
+    sed -i '/#AllowTcpForwarding/s/^.*$/AllowTcpForwarding yes/' /etc/ssh/sshd_config && \
+    sed -i '/#X11UseLocalhost/s/^.*$/X11UseLocalhost yes/' /etc/ssh/sshd_config && \
+    sed -i '/#X11DisplayOffset/s/^.*$/X11DisplayOffset 10/' /etc/ssh/sshd_config && \
+    sed -i '/#Port/s/^.*$/Port 5910/' /etc/ssh/sshd_config && systemctl enable sshd.service
+
+# Init `x2go` database
+# Set `x2go` symlink
+# Enable `x2go`
+RUN x2godbadmin --createdb && \
+    mkdir -p /etc/x2go && ln -sf /usr/share/applications /etc/x2go/applications && \
+    systemctl enable x2goserver.service
+
+# Install our custom `x2go` start-up script
+COPY /containerfiles/x2go_startup.sh /x2go_startup.sh
+RUN chmod 555 /x2go_startup.sh
+
+# Disable Compositing (https://gitlab.xfce.org/xfce/xfwm4/-/issues/551)
+RUN echo "/usr/bin/xfconf-query -c xfwm4 -p /general/use_compositing -n -t bool -s false" > /etc/profile.d/xfwm4_no_compositing.sh
+RUN chmod 555 /etc/profile.d/xfwm4_no_compositing.sh
+# ----- `x2go` setup END -----
+
+# Install `aurman`
+USER pod
+WORKDIR /home/pod
+RUN curl -O https://github.com/polygamma.gpg && gpg --import polygamma.gpg && rm polygamma.gpg
+RUN git clone https://aur.archlinux.org/aurman.git
+WORKDIR /home/pod/aurman
+RUN sudo pacman -Syu --overwrite \* --ask=4 && yes | sudo pacman -Scc
+RUN makepkg -si --needed --noconfirm && yes | sudo pacman -Scc
+WORKDIR /home/pod
+RUN rm -rf aurman
+RUN mkdir -p /home/pod/.config/aurman
+RUN echo -e "[miscellaneous]\nuse_ask" > /home/pod/.config/aurman/aurman_config
+USER root
+WORKDIR /
+
+# Install packages using `aurman`
+USER pod
+WORKDIR /home/pod
+COPY /software/x86_64/aurman /aurman_x86_64
+RUN aurman -Syu --noedit --pgp_fetch --skip_news --noconfirm --skip_new_locations --overwrite \* \
+    $(eval echo $(sed 's/#.*$//' /aurman_x86_64)) \
+    && yes | sudo pacman -Scc && rm -rf /home/pod/.cache
+USER root
+WORKDIR /
+
+# Add `pod` user to all existing groups
+RUN usermod -a -G $(getent group | cut -d: -f1 | tr '\n' ',' | sed 's/,$//') pod

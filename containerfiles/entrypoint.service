@@ -1,0 +1,12 @@
+[Unit]
+Description=Executes /entrypoint.sh
+
+[Service]
+Type=simple
+Restart=no
+User=pod
+ExecStartPre=+/usr/bin/chmod 755 /entrypoint.sh
+ExecStart=/entrypoint.sh
+
+[Install]
+WantedBy=graphical.target

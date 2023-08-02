@@ -1,0 +1,47 @@
+# ---------- ALWAYS NEEDED START ----------
+# Base system
+base base-devel linux linux-headers dkms linux-firmware
+
+# Contains `mdev`, which is used to allow hot plugging of devices
+busybox
+
+# `Xorg` and graphics stuff
+xorg-drivers xorg-server xorg-xdpyinfo nvidia-dkms lib32-nvidia-utils mesa lib32-mesa mesa-utils
+
+# `xfce` desktop environment and `xfce4-goodies` additional packages
+# `lightdm` display manager and `lightdm-gtk-greeter` default greeter
+# `pulseaudio` sound server and `pavucontrol` volume control
+# `gvfs` virtual file system and `file-roller` archive manager
+# `xfce4-screensaver` is ignored because it can freeze an `x2go` session
+xfce4 xfce4-goodies lightdm lightdm-gtk-greeter pulseaudio pavucontrol gvfs file-roller --ignore xfce4-screensaver
+
+# X2Go server and needed utilities
+x2goserver openssh xorg-xauth xorg-xhost
+
+# Used to fetch `aurman` from the AUR
+git
+# ---------- ALWAYS NEEDED END ----------
+
+# Utilities needed for displaying of man- and info pages
+man-db man-pages texinfo
+
+# `Bash` tab auto-completion
+bash-completion
+
+# Text editor
+nano
+
+# Packages to work with raids, lvm and different file systems (https://wiki.archlinux.org/title/File_systems)
+mdadm lvm2 btrfs-progs dosfstools exfatprogs f2fs-tools e2fsprogs jfsutils nilfs-utils ntfs-3g reiserfsprogs udftools xfsprogs
+
+# Packages for archiving and compressing (https://wiki.archlinux.org/title/Archiving_and_compression)
+tar libarchive binutils cpio bzip2 bzip3 gzip lrzip lz4 lzip lzop xz zstd p7zip unrar zip unzip unarchiver lhasa unace
+
+# Wine https://www.winehq.org/
+wine-staging wine-mono wine-gecko winetricks zenity $(pactree -s -u -l -o wine-staging | sed 's/:.*$//')
+
+# Python and base utilities
+python cython ipython python-coverage python-pytest python-setuptools
+
+# To run Podman in Podman
+podman fuse-overlayfs

@@ -1,0 +1,10 @@
+[Unit]
+Description=mdev
+Before=systemd-udevd.service local-fs-pre.target
+DefaultDependencies=no
+
+[Service]
+ExecStart=/usr/bin/busybox mdev -df
+
+[Install]
+WantedBy=sysinit.target

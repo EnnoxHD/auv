@@ -1,0 +1,8 @@
+# All fonts of the official Arch repositories - you very much want to install these, otherwise everything looks pretty bad
+all-repository-fonts
+
+# PyCharm https://www.jetbrains.com/pycharm
+pycharm-professional
+
+# Browser
+google-chrome
