@@ -108,6 +108,32 @@ class Terminal:
         size = get_terminal_size()
         return (size.columns, size.lines)
 
+    @staticmethod
+    def ellipsify(string: str, length: int) -> str:
+        """
+        Potentially caps a string at a certain length and includes an ellipsis
+
+        :param string:  The string to check and potentially modify
+        :param length:  The length limitation for the string representation
+        :return:        The capped string with an ellipsis
+        """
+        if length <= 0:
+            return ""
+
+        string = string.strip()
+
+        string_len = len(string)
+        if string_len <= length:
+            return string
+
+        ellipsis = "..."
+        ellipsis_len = len(ellipsis)
+        if ellipsis_len >= length:
+            return ellipsis[ellipsis_len - length :]
+
+        overshoot = string_len - length
+        return string[: -overshoot - ellipsis_len] + ellipsis
+
 
 def print_and_input(input_message: str, *prints_before_input: str):
     for print_before_input in prints_before_input:
