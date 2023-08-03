@@ -208,6 +208,23 @@ class Terminal:
         to_print += decoration[2] + decoration[3]
         print(to_print)
 
+    @staticmethod
+    def footer():
+        """
+        Prints a simple footer in the terminal
+        """
+        # https://en.m.wikipedia.org/wiki/Box-drawing_character#Box_Drawing
+        decoration = ("\u2517", "\u251B")
+        line = "\u2501"
+
+        width = Terminal.size()[0]
+        remaining_width = width - len(decoration)
+
+        to_print = decoration[0]
+        to_print += line * remaining_width
+        to_print += decoration[1]
+        print(to_print)
+
 
 def noop(string: str):
     return
