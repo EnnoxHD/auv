@@ -205,6 +205,23 @@ class Terminal:
         print(to_print)
 
     @staticmethod
+    def divider():
+        """
+        Prints a simple divider in the terminal
+        """
+        # https://en.m.wikipedia.org/wiki/Box-drawing_character#Box_Drawing
+        decoration = ("\u2520", "\u2528")
+        line = "\u2500"
+
+        width = Terminal.size()[0]
+        remaining_width = width - len(decoration)
+
+        to_print = decoration[0]
+        to_print += line * remaining_width
+        to_print += decoration[1]
+        print(to_print)
+
+    @staticmethod
     def footer():
         """
         Prints a simple footer in the terminal
