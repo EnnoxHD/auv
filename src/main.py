@@ -66,6 +66,9 @@ class Colors:
     @staticmethod
     def bold(*x: Any) -> str: return Colors.concat_str("\033[1m", *x, "\033[22m")
 
+    @staticmethod
+    def invert(*x: Any) -> str: return Colors.concat_str("\033[7m", *x, "\033[27m")
+
 
 class Terminal:
     """
