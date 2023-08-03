@@ -7,11 +7,12 @@ from os import getuid, getgid
 from os.path import abspath, dirname, pardir
 from os.path import join as os_join
 from platform import machine
-from re import compile
+from re import compile, match
 from shlex import quote as shlex_quote
 from shutil import get_terminal_size
 from subprocess import run, CompletedProcess, PIPE, STDOUT
-from sys import exit, argv
+from sys import exit, argv, stdout, stdin
+from termios import tcgetattr, tcsetattr, ECHO, ICANON, TCSAFLUSH
 from threading import Thread
 from typing import Any, TYPE_CHECKING
 
@@ -103,6 +104,7 @@ class Terminal:
         else:
             # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
             Terminal.print_plain("\033[2J")
+            Terminal.cursor_set_position((1, 1))
 
     @staticmethod
     def size() -> tuple[int, int]:
@@ -113,6 +115,73 @@ class Terminal:
         """
         size = get_terminal_size()
         return (size.columns, size.lines)
+
+    @staticmethod
+    def cursor_get_position() -> tuple[int, int]:
+        """
+        Retrieves the current position of the cursor in the terminal
+
+        :return:    The current position of the cursor as tuple (column, row)
+        """
+        # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+        # https://stackoverflow.com/a/69582478
+        old_stdin_mode = tcgetattr(stdin)
+
+        new_stdin_mode = tcgetattr(stdin)
+        new_stdin_mode[3] = new_stdin_mode[3] & ~(ECHO | ICANON)
+        tcsetattr(stdin, TCSAFLUSH, new_stdin_mode)
+
+        try:
+            stdout.write("\033[6n")
+            stdout.flush()
+            device_status_report = ""
+            while not device_status_report.endswith("R"):
+                device_status_report += stdin.read(1)
+            position = match(r".*\[(?P<row>\d*);(?P<column>\d*)R", device_status_report)
+        finally:
+            tcsetattr(stdin, TCSAFLUSH, old_stdin_mode)
+
+        if position:
+           return (int(position.group("column")), int(position.group("row")))
+        else:
+            return (1, 1)
+
+    @staticmethod
+    def calculate_row_offset(initial_position: tuple[int, int], additional_rows: int = 0) -> int:
+        """
+        Calculates the offset from an initial position to accommodate for additional rows,
+        especially if the initial position is near or at maximum height in the terminal
+
+        :param initial_position:    The initial position of the cursor as tuple (column, row)
+        :param additional_rows:     The number of rows added after the initial position
+        :return:                    The number of rows
+        """
+        terminal_size_rows = Terminal.size()[1]
+        initial_row = initial_position[1]
+        new_row = initial_row + additional_rows
+        if new_row > terminal_size_rows:
+            return terminal_size_rows - new_row
+        else:
+            return 0
+
+    @staticmethod
+    def cursor_set_position(position: tuple[int, int], row_offset: int = 0):
+        """
+        Sets the cursor to the given position inside the terminal
+
+        :param position:    The cursor position to move the cursor to as tuple (column, row)
+        :param row_offset:  Offset to accommodate for new rows, e.g. printed lines after the input
+        """
+        # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+        column = position[0]
+        if column <= 0:
+            column = 1
+
+        row = position[1]
+        if row <= 0:
+            row = 1
+
+        Terminal.print_plain(f"\033[{row + row_offset};{column}H")
 
     @staticmethod
     def cursor_back(steps: int):
@@ -1004,6 +1073,11 @@ if __name__ == "__main__":
         Terminal.divider()
         try:
             Terminal.content(podman_input("Enter your choice: "), as_input=True)
+            input_position = Terminal.cursor_get_position()
+            print()
+            Terminal.footer()
+            offset = Terminal.calculate_row_offset(input_position, additional_rows=2)
+            Terminal.cursor_set_position(input_position, row_offset=offset)
             user_choice = int(input())
             if 1 <= user_choice <= len(execution_possibilities):
                 Terminal.clear(True)
@@ -1012,7 +1086,7 @@ if __name__ == "__main__":
             else:
                 raise IndexError
         except (ValueError, IndexError):
-            podman_error("That choice was not valid")
+            podman_error("That choice was not valid", new_line=True)
         except EOFError:
             podman_error("We caught an EOFError, which is not your fault, just restart the script", new_line=True)
             exit(1)
