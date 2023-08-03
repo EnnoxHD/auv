@@ -111,6 +111,18 @@ class Terminal:
         return (size.columns, size.lines)
 
     @staticmethod
+    def cursor_back(steps: int):
+        """
+        Moves the cursor in the terminal back
+
+        :param steps:   The number of steps to move the cursor back
+        """
+        if steps <= 0:
+            return
+        # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+        Terminal.print_plain(f"\033[{steps}D")
+
+    @staticmethod
     def len_on_display(string: str) -> int:
         """
         Calculates the displayable length of a string, excluding ANSI escape codes
@@ -125,18 +137,20 @@ class Terminal:
         return len(displayable_string)
 
     @staticmethod
-    def ellipsify(string: str, length: int) -> str:
+    def ellipsify(string: str, length: int, preserve: bool = False) -> str:
         """
         Potentially caps a string at a certain length and includes an ellipsis
 
-        :param string:  The string to check and potentially modify
-        :param length:  The length limitation for the string representation
+        :param string:      The string to check and potentially modify
+        :param length:      The length limitation for the string representation
+        :param preserve:    Do not strip the string and preserve the input as is
         :return:        The capped string with an ellipsis
         """
         if length <= 0:
             return ""
 
-        string = string.strip()
+        if not preserve:
+            string = string.strip()
 
         string_len = Terminal.len_on_display(string)
         if string_len <= length:
@@ -179,11 +193,12 @@ class Terminal:
         print(to_print)
 
     @staticmethod
-    def content(string: str = ""):
+    def content(string: str = "", as_input: bool = False):
         """
         Prints a line of content in the terminal for the given string
 
-        :param string:  The string to use inside the content line
+        :param string:      The string to use inside the content line
+        :param as_input:    Resets the cursor position after printing the decoration
         """
         # https://en.m.wikipedia.org/wiki/Box-drawing_character#Box_Drawing
         decoration = ("\u2503", " ", " ", "\u2503")
@@ -195,14 +210,18 @@ class Terminal:
         if string.startswith("\n"):
             Terminal.content()
 
-        string = Terminal.ellipsify(string.strip(), remaining_width)
+        string = Terminal.ellipsify(string, remaining_width, preserve=as_input)
 
         remaining_width -= Terminal.len_on_display(string)
 
         to_print = decoration[0] + decoration[1]
         to_print += string + space * remaining_width
         to_print += decoration[2] + decoration[3]
-        print(to_print)
+        if as_input:
+            Terminal.print_plain(to_print)
+            Terminal.cursor_back(remaining_width + 1)
+        else:
+            print(to_print)
 
     @staticmethod
     def divider():
@@ -980,7 +999,8 @@ if __name__ == "__main__":
         Terminal.content()
         Terminal.divider()
         try:
-            user_choice = int(input(podman_input("Enter your choice: ", new_line=True)))
+            Terminal.content(podman_input("Enter your choice: "), as_input=True)
+            user_choice = int(input())
             if 1 <= user_choice <= len(execution_possibilities):
                 Terminal.clear(True)
                 execution_possibilities[user_choice - 1][2](exec_from_cmd=False)
