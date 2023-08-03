@@ -6,7 +6,7 @@ from os import getuid, getgid
 from os.path import abspath, dirname, pardir
 from os.path import join as os_join
 from platform import machine
-from re import compile, match
+from re import compile, match, split
 from shlex import quote as shlex_quote
 from shutil import get_terminal_size
 from subprocess import run, CompletedProcess, PIPE, STDOUT
@@ -206,6 +206,43 @@ class Terminal:
         return len(displayable_string)
 
     @staticmethod
+    def cut(string: str, excess: int, insert_end = "") -> str:
+        """
+        Cuts a string to length preserving all ansi control characters in it
+
+        :param string:      The string to cut to length
+        :param excess:      Number of visible characters getting cut off
+        :param insert_end:  Inserts the string at the end of the visible characters, ansi control characters may follow, it has no impact on length calculation
+        :return:            The string cut to length including all ansi control characters
+        """
+        # https://en.wikipedia.org/wiki/ANSI_escape_code#Description
+        # https://stackoverflow.com/a/14693789
+        ansi_escape_codes = r'(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))'
+        splitted = split(ansi_escape_codes, string)
+        cut_string_parts = []
+        target_len = Terminal.len_on_display(string) - excess
+        current_len = 0
+        for part in splitted:
+            part_len = Terminal.len_on_display(part)
+            if part_len == 0:
+                cut_string_parts.append(part)
+            else:
+                if(current_len == target_len):
+                    continue
+                new_len = current_len + part_len
+                if new_len <= target_len:
+                    cut_string_parts.append(part)
+                    current_len = new_len
+                    if new_len == target_len:
+                        cut_string_parts.append(insert_end)
+                else:
+                    cut_part = part[: -current_len + target_len]
+                    cut_string_parts.append(cut_part)
+                    current_len = current_len + Terminal.len_on_display(cut_part)
+                    cut_string_parts.append(insert_end)
+        return "".join(cut_string_parts)
+
+    @staticmethod
     def ellipsify(string: str, length: int, preserve: bool = False) -> str:
         """
         Potentially caps a string at a certain length and includes an ellipsis
@@ -213,7 +250,7 @@ class Terminal:
         :param string:      The string to check and potentially modify
         :param length:      The length limitation for the string representation
         :param preserve:    Do not strip the string and preserve the input as is
-        :return:        The capped string with an ellipsis
+        :return:            The capped string with an ellipsis
         """
         if length <= 0:
             return ""
@@ -230,8 +267,8 @@ class Terminal:
         if ellipsis_len >= length:
             return ellipsis[ellipsis_len - length :]
 
-        overshoot = string_len - length
-        return string[: -overshoot - ellipsis_len] + ellipsis
+        overshoot = string_len - length + ellipsis_len
+        return Terminal.cut(string, overshoot, insert_end=ellipsis)
 
     @staticmethod
     def header(string: str):
