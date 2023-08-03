@@ -664,6 +664,8 @@ if __name__ == "__main__":
     # We want sudo priv
     acquire_sudo()
 
+    Terminal.clear(True)
+
     # Set the execution possibilities for the user
     execution_possibilities = [
         ("Build", [
@@ -799,6 +801,8 @@ if __name__ == "__main__":
         if container_running():
             stop_systemd_service_or_container(is_systemd_service=False)
             continue
+
+        Terminal.clear(False)
 
         # Let the user execute a thing
         podman_status("Choose, what you want to do next", new_line=True)
