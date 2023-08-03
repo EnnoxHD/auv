@@ -892,6 +892,7 @@ if __name__ == "__main__":
 
         Terminal.clear(False)
         Terminal.header('Arch Userland Virtualization (AUV) - Helper')
+        Terminal.content('')
 
         # Let the user execute a thing
         podman_status("Choose, what you want to do next", new_line=True)
