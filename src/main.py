@@ -154,9 +154,9 @@ class Terminal:
 
         to_print = decoration[0]
         to_print += line * remaining_width_half
-        to_print += decoration[1] + decoration[2]
-        to_print += Colors.bold(string)
-        to_print += decoration[3] + decoration[4]
+        to_print += decoration[1]
+        to_print += Colors.invert(decoration[2] + Colors.bold(string) + decoration[3])
+        to_print += decoration[4]
         to_print += line * (remaining_width - remaining_width_half)
         to_print += decoration[5]
         print(to_print)
