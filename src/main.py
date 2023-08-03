@@ -134,6 +134,34 @@ class Terminal:
         overshoot = string_len - length
         return string[: -overshoot - ellipsis_len] + ellipsis
 
+    @staticmethod
+    def header(string: str):
+        """
+        Prints a header line in the terminal for the given string
+
+        :param string:  The string to use inside the header
+        """
+        # https://en.m.wikipedia.org/wiki/Box-drawing_character#Box_Drawing
+        decoration = ("\u250f", "\u252b", " ", " ", "\u2523", "\u2513")
+        line = "\u2501"
+
+        width = Terminal.size()[0]
+        remaining_width = width - len(decoration)
+
+        string = Terminal.ellipsify(string.strip(), remaining_width)
+
+        remaining_width -= len(string)
+        remaining_width_half = remaining_width // 2
+
+        to_print = decoration[0]
+        to_print += line * remaining_width_half
+        to_print += decoration[1] + decoration[2]
+        to_print += Colors.bold(string)
+        to_print += decoration[3] + decoration[4]
+        to_print += line * (remaining_width - remaining_width_half)
+        to_print += decoration[5]
+        print(to_print)
+
 
 def print_and_input(input_message: str, *prints_before_input: str):
     for print_before_input in prints_before_input:
