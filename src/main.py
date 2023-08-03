@@ -70,6 +70,34 @@ class Colors:
     def bold(*x: Any) -> str: return Colors.concat_str("\033[1m", *x, "\033[22m")
 
 
+class Terminal:
+    """
+    Class used for terminal manipulation
+    """
+    @staticmethod
+    def print_plain(string: str):
+        """
+        Print the given string without an end string
+
+        :param string:  The string to print
+        """
+        print(string, end='')
+
+    @staticmethod
+    def clear(include_buffer: bool = False):
+        """
+        Clears the terminal and optionally preserves the scroll buffer
+
+        :param include_buffer:  Whether to also clear the scroll buffer or not
+        """
+        if include_buffer:
+            # https://en.wikipedia.org/wiki/ANSI_escape_code#Fs_Escape_sequences
+            Terminal.print_plain("\033c")
+        else:
+            # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
+            Terminal.print_plain("\033[2J")
+
+
 def print_and_input(input_message: str, *prints_before_input: str):
     for print_before_input in prints_before_input:
         print(print_before_input)
