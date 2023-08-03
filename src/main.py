@@ -138,7 +138,7 @@ class Terminal:
 
         string = string.strip()
 
-        string_len = len(string)
+        string_len = Terminal.len_on_display(string)
         if string_len <= length:
             return string
 
@@ -166,7 +166,7 @@ class Terminal:
 
         string = Terminal.ellipsify(string.strip(), remaining_width)
 
-        remaining_width -= len(string)
+        remaining_width -= Terminal.len_on_display(string)
         remaining_width_half = remaining_width // 2
 
         to_print = decoration[0]
@@ -197,7 +197,7 @@ class Terminal:
 
         string = Terminal.ellipsify(string.strip(), remaining_width)
 
-        remaining_width -= len(string)
+        remaining_width -= Terminal.len_on_display(string)
 
         to_print = decoration[0] + decoration[1]
         to_print += string + space * remaining_width
