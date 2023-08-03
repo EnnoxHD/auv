@@ -179,7 +179,7 @@ class Terminal:
         print(to_print)
 
     @staticmethod
-    def content(string: str):
+    def content(string: str = ""):
         """
         Prints a line of content in the terminal for the given string
 
@@ -193,7 +193,7 @@ class Terminal:
         remaining_width = width - len(decoration)
 
         if string.startswith("\n"):
-            Terminal.content("")
+            Terminal.content()
 
         string = Terminal.ellipsify(string.strip(), remaining_width)
 
@@ -977,7 +977,7 @@ if __name__ == "__main__":
             for description_line in execution_possibilities[i][1]:
                 podman_status(description_line, printing=Printing.MENU)
 
-        Terminal.content("")
+        Terminal.content()
         Terminal.divider()
         try:
             user_choice = int(input(podman_input("Enter your choice: ", new_line=True)))
