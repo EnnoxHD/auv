@@ -5,6 +5,7 @@ from os.path import abspath, dirname, pardir
 from os.path import join as os_join
 from platform import machine
 from shlex import quote as shlex_quote
+from shutil import get_terminal_size
 from subprocess import run, CompletedProcess, PIPE, STDOUT
 from sys import exit, argv
 from threading import Thread
@@ -92,6 +93,16 @@ class Terminal:
         else:
             # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
             Terminal.print_plain("\033[2J")
+
+    @staticmethod
+    def size() -> tuple[int, int]:
+        """
+        Evaluates the current size of the terminal
+
+        :return:    The terminal size as tuple (width/columns, height/rows)
+        """
+        size = get_terminal_size()
+        return (size.columns, size.lines)
 
 
 def print_and_input(input_message: str, *prints_before_input: str):
