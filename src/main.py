@@ -162,6 +162,29 @@ class Terminal:
         to_print += decoration[5]
         print(to_print)
 
+    @staticmethod
+    def content(string: str):
+        """
+        Prints a line of content in the terminal for the given string
+
+        :param string:  The string to use inside the content line
+        """
+        # https://en.m.wikipedia.org/wiki/Box-drawing_character#Box_Drawing
+        decoration = ("\u2503", " ", " ", "\u2503")
+        space = " "
+
+        width = Terminal.size()[0]
+        remaining_width = width - len(decoration)
+
+        string = Terminal.ellipsify(string.strip(), remaining_width)
+
+        remaining_width -= len(string)
+
+        to_print = decoration[0] + decoration[1]
+        to_print += string + space * remaining_width
+        to_print += decoration[2] + decoration[3]
+        print(to_print)
+
 
 def print_and_input(input_message: str, *prints_before_input: str):
     for print_before_input in prints_before_input:
