@@ -976,6 +976,9 @@ if __name__ == "__main__":
             )
             for description_line in execution_possibilities[i][1]:
                 podman_status(description_line, printing=Printing.MENU)
+
+        Terminal.content("")
+        Terminal.divider()
         try:
             user_choice = int(input(podman_input("Enter your choice: ", new_line=True)))
             if 1 <= user_choice <= len(execution_possibilities):
