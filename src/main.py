@@ -7,6 +7,7 @@ from os import getuid, getgid
 from os.path import abspath, dirname, pardir
 from os.path import join as os_join
 from platform import machine
+from re import compile
 from shlex import quote as shlex_quote
 from shutil import get_terminal_size
 from subprocess import run, CompletedProcess, PIPE, STDOUT
@@ -112,6 +113,20 @@ class Terminal:
         """
         size = get_terminal_size()
         return (size.columns, size.lines)
+
+    @staticmethod
+    def len_on_display(string: str) -> int:
+        """
+        Calculates the displayable length of a string, excluding ANSI escape codes
+
+        :param string:  A string whose length is to be calculated
+        :return:        The length of the string, excluding ANSI escape codes
+        """
+        # https://en.wikipedia.org/wiki/ANSI_escape_code#Description
+        # https://stackoverflow.com/a/14693789
+        ansi_escape_codes = compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        displayable_string = ansi_escape_codes.sub('', string)
+        return len(displayable_string)
 
     @staticmethod
     def ellipsify(string: str, length: int) -> str:
