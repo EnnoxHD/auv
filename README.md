@@ -67,7 +67,7 @@ When creating a session in the x2goclient, the following options in the Session 
 *  Login: pod
 *  SSH port: `5910`
 *  Session type: Custom desktop with the command `/x2go_startup.sh`
-*  Host: `localhost`, if you want to connect to containers on the same host, otherwise you need to enter the IP of the device on which a container running
+*  Host: `localhost`, if you want to connect to containers on the same host, otherwise you need to enter the IP of the device on which a container is running
 
 To circumvent a firewall you may use an [SSH tunnel](https://www.ssh.com/ssh/tunneling/example).
 ### Using the desktop environment of the containers on headless hosts
