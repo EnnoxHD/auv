@@ -89,7 +89,7 @@ class Terminal:
 
         :param string:  The string to print
         """
-        print(string, end='')
+        print(string, end="")
 
     @staticmethod
     def clear(include_buffer: bool = False):
@@ -141,10 +141,10 @@ class Terminal:
         finally:
             tcsetattr(stdin, TCSAFLUSH, old_stdin_mode)
 
+        current_position = (1, 1)
         if position:
-           return (int(position.group("column")), int(position.group("row")))
-        else:
-            return (1, 1)
+           current_position = (int(position.group("column")), int(position.group("row")))
+        return current_position
 
     @staticmethod
     def calculate_row_offset(initial_position: tuple[int, int], additional_rows: int = 0) -> int:
@@ -159,10 +159,10 @@ class Terminal:
         terminal_size_rows = Terminal.size()[1]
         initial_row = initial_position[1]
         new_row = initial_row + additional_rows
+        num_of_rows = 0
         if new_row > terminal_size_rows:
-            return terminal_size_rows - new_row
-        else:
-            return 0
+            num_of_rows = terminal_size_rows - new_row
+        return num_of_rows
 
     @staticmethod
     def cursor_set_position(position: tuple[int, int], row_offset: int = 0):
@@ -205,8 +205,8 @@ class Terminal:
         """
         # https://en.wikipedia.org/wiki/ANSI_escape_code#Description
         # https://stackoverflow.com/a/14693789
-        ansi_escape_codes = compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        displayable_string = ansi_escape_codes.sub('', string)
+        ansi_escape_codes = compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        displayable_string = ansi_escape_codes.sub("", string)
         return len(displayable_string)
 
     @staticmethod
@@ -216,12 +216,13 @@ class Terminal:
 
         :param string:      The string to cut to length
         :param excess:      Number of visible characters getting cut off
-        :param insert_end:  Inserts the string at the end of the visible characters, ansi control characters may follow, it has no impact on length calculation
+        :param insert_end:  Inserts the string at the end of the visible characters,
+                            ansi control characters may follow, it has no impact on length calculation
         :return:            The string cut to length including all ansi control characters
         """
         # https://en.wikipedia.org/wiki/ANSI_escape_code#Description
         # https://stackoverflow.com/a/14693789
-        ansi_escape_codes = r'(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))'
+        ansi_escape_codes = r"(\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]))"
         splitted = split(ansi_escape_codes, string)
         cut_string_parts = []
         target_len = Terminal.len_on_display(string) - excess
@@ -1093,7 +1094,7 @@ if __name__ == "__main__":
             continue
 
         Terminal.clear(False)
-        Terminal.header('Arch Userland Virtualization (AUV) - Helper')
+        Terminal.header("Arch Userland Virtualization (AUV) - Helper")
 
         # Let the user execute a thing
         podman_status("Choose, what you want to do next", new_line=True, printing=Printing.MENU)
