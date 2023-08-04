@@ -41,7 +41,7 @@ tar libarchive binutils cpio bzip2 bzip3 gzip lrzip lz4 lzip lzop xz zstd p7zip 
 wine-staging wine-mono wine-gecko winetricks zenity $(pactree -s -u -l -o wine-staging | sed 's/:.*$//')
 
 # Python and base utilities
-python cython ipython python-coverage python-pytest python-setuptools
+python cython ipython python-coverage python-pytest python-setuptools ruff
 
 # To run Podman in Podman
 podman fuse-overlayfs
