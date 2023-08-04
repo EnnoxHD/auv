@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from json import loads, dumps, JSONDecodeError
 from os import getuid, getgid
 from os.path import abspath, dirname, pardir
@@ -7,7 +8,7 @@ from shlex import quote as shlex_quote
 from subprocess import run, CompletedProcess, PIPE, STDOUT
 from sys import exit, argv
 from threading import Thread
-from typing import Optional, List, Any, Sequence
+from typing import Any
 
 
 def script_dir() -> str:
@@ -81,7 +82,7 @@ def podman_message(string: str, new_line: bool, to_print: bool, color: Any, stri
     else:
         to_return = ""
 
-    to_return += "{} {}".format(color(string_begin), string)
+    to_return += f"{color(string_begin)} {string}"
 
     if to_print:
         print(to_return)
@@ -149,7 +150,7 @@ def podman_input(string: str, new_line: bool = False) -> str:
 
 
 def run_command(
-        command: str, capture_output: bool = False, valid_return_codes: Optional[Sequence[int]] = None
+        command: str, capture_output: bool = False, valid_return_codes: Sequence[int] | None = None
 ) -> CompletedProcess:
     """
     Runs a given command in the shell, and may additionally check for valid return codes
@@ -170,13 +171,9 @@ def run_command(
 
     if valid_return_codes and completed.returncode not in valid_return_codes:
         if capture_output:
-            podman_error("'{}' could not be executed correctly:\n   {}".format(
-                command, completed.stdout.strip()
-            ), new_line=True)
+            podman_error(f"'{command}' could not be executed correctly:\n   {completed.stdout.strip()}", new_line=True)
         else:
-            podman_error("'{}' could not be executed correctly".format(
-                command
-            ), new_line=True)
+            podman_error(f"'{command}' could not be executed correctly", new_line=True)
 
         raise RuntimeError
 
@@ -238,7 +235,7 @@ class Calls:
     xhostFilePath = "/etc/profile.d/xhost.sh"
     xhostEnableStart = "sudo cp --force {} {} && sudo chmod 555 {} && . {}" \
                        "".format(os_join(script_dir(), 'xhost.sh'), xhostFilePath, xhostFilePath, xhostFilePath)
-    xhostDisableStop = "sudo rm --force {}".format(xhostFilePath)
+    xhostDisableStop = f"sudo rm --force {xhostFilePath}"
 
     # See: http://docs.podman.io/en/latest/markdown/podman-build.1.html
     buildImage = "sudo TMPDIR={} podman build --force-rm --no-cache --pull=always --tag auv:latest " \
@@ -276,7 +273,7 @@ def acquire_sudo():
     t.start()
 
 
-def args_from_file(file: str = os_join(script_dir(), 'args.json')) -> List[str]:
+def args_from_file(file: str = os_join(script_dir(), 'args.json')) -> list[str]:
     """
     Reads arguments to be provided to the Podman run call from a file in the JSON format.
     The file has to contain exactly one list, containing the arguments to be provided as strings.
@@ -285,15 +282,15 @@ def args_from_file(file: str = os_join(script_dir(), 'args.json')) -> List[str]:
     :param file:    The JSON file to read from
     :return:        The list containing the arguments read from the file
     """
-    with open(file, 'r') as f:
+    with open(file) as f:
         read_args = loads(f.read())
 
     if not isinstance(read_args, list):
-        raise ValueError("{} is not a list".format(read_args))
+        raise ValueError(f"{read_args} is not a list")
 
     for argument in read_args:
         if not isinstance(argument, str):
-            raise ValueError("{} is not a string".format(argument))
+            raise ValueError(f"{argument} is not a string")
 
     with open(file, 'w') as f:
         f.write(dumps(read_args, indent=4))
@@ -413,7 +410,7 @@ def save_image(exec_from_cmd: bool):
             "Enter the path to an existing folder to save the image in: "
         )).strip(), 'auv_latest.tar'))
 
-    podman_question("Do you want to save the image auv:latest to {} ?".format(path_to_save))
+    podman_question(f"Do you want to save the image auv:latest to {path_to_save} ?")
     if exec_from_cmd:
         choice = "y"
     else:
@@ -426,10 +423,10 @@ def save_image(exec_from_cmd: bool):
         return
 
     if run_command(Calls.saveImageArgs.format(shlex_quote(path_to_save))).returncode == 0:
-        run_command("sudo chown $USER:$USER {}".format(shlex_quote(path_to_save)), True)
-        podman_note("SUCCESS: Image auv:latest was successfully saved to {}".format(path_to_save), new_line=True)
+        run_command(f"sudo chown $USER:$USER {shlex_quote(path_to_save)}", True)
+        podman_note(f"SUCCESS: Image auv:latest was successfully saved to {path_to_save}", new_line=True)
     else:
-        podman_error("ERROR: Image auv:latest could not be saved to {}".format(path_to_save), new_line=True)
+        podman_error(f"ERROR: Image auv:latest could not be saved to {path_to_save}", new_line=True)
         podman_error("       Take a look at the output to find the problem")
         raise RuntimeError
 
@@ -451,10 +448,10 @@ def load_image(exec_from_cmd: bool):
     clear_before_building_or_after_failed_building()
     if run_command(Calls.loadImageArgs.format(shlex_quote(path_to_load))).returncode == 0:
         clear_after_building_or_before_starting()
-        podman_note("SUCCESS: Image loaded successfully from {}".format(path_to_load), new_line=True)
+        podman_note(f"SUCCESS: Image loaded successfully from {path_to_load}", new_line=True)
     else:
         clear_before_building_or_after_failed_building()
-        podman_error("ERROR: Image could not be loaded from {}".format(path_to_load), new_line=True)
+        podman_error(f"ERROR: Image could not be loaded from {path_to_load}", new_line=True)
         podman_error("       Take a look at the output to find the problem")
         raise RuntimeError
 
@@ -468,7 +465,7 @@ def print_debug_info(exec_from_cmd: bool):
         run(
             r"""git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'""",
             cwd=repo_base_dir(),
-            shell=True, text=True, stdout=PIPE, stderr=PIPE
+            shell=True, text=True, capture_output=True
         ).stdout.strip()
     ), new_line=True)
 
@@ -478,18 +475,14 @@ def print_debug_info(exec_from_cmd: bool):
         )
     )
 
-    with open(os_join(script_dir(), 'args.json'), 'r') as args_json:
+    with open(os_join(script_dir(), 'args.json')) as args_json:
         podman_status(
-            "The currently used args.json:\n{}".format(
-                args_json.read().strip()
-            )
+            f"The currently used args.json:\n{args_json.read().strip()}"
         )
 
-    with open(os_join(script_dir(), 'entrypoint.sh'), 'r') as entrypoint_sh:
+    with open(os_join(script_dir(), 'entrypoint.sh')) as entrypoint_sh:
         podman_status(
-            "The currently used entrypoint.sh:\n{}".format(
-                entrypoint_sh.read().strip()
-            )
+            f"The currently used entrypoint.sh:\n{entrypoint_sh.read().strip()}"
         )
 
     podman_status(
@@ -582,7 +575,7 @@ def podman_reset(exec_from_cmd: bool):
     Resets the Podman environment completely
     """
     try:
-        run_command("sudo rm -rf {}".format(shlex_quote(Calls.podmanRoot)), True, valid_return_codes=(0,))
+        run_command(f"sudo rm -rf {shlex_quote(Calls.podmanRoot)}", True, valid_return_codes=(0,))
         run_command(Calls.podmanReset, True, valid_return_codes=(0,))
     except RuntimeError:
         podman_error("Could not reset the Podman environment, look at the output to find the problem", new_line=True)
@@ -670,7 +663,7 @@ if __name__ == '__main__':
         ], save_image),
 
         ("Create and install systemd service file", [
-            "The created systemd service file will be installed to '{}'".format(Calls.serviceFilePath),
+            f"The created systemd service file will be installed to '{Calls.serviceFilePath}'",
             "It will not be started or enabled via 'systemctl', it will just be copied to the mentioned location",
             "Use other options of this Python helper to start and enable the service",
             "You need to re-run this option after changing the 'args.json' to include the changes in the service file",
@@ -680,7 +673,7 @@ if __name__ == '__main__':
 
         ("Start via systemd", [
             "Starts a container based on the image currently present on this system",
-            "Starting is done via '{}'".format(Calls.systemdStart),
+            f"Starting is done via '{Calls.systemdStart}'",
             "After starting the container via systemd, the Python helper will exit",
             "The started container runs in the background and may be stopped when re-opening the Python helper",
             "You may connect to the started container with 'ssh' or 'x2go'",
@@ -691,7 +684,7 @@ if __name__ == '__main__':
             "Enables the automatic starting of a container at boot",
             "Also enables automatic restarting of that container",
             "Automatic restarting happens in every case, which means regular shutdowns and crashes",
-            "Enabling is done via '{}'".format(Calls.systemdEnable),
+            f"Enabling is done via '{Calls.systemdEnable}'",
             "This does not start a container via systemd",
             "To start a container via systemd, reboot the system after enabling this option",
             "Or use the regarding option of the Python helper to start a container via systemd without rebooting",
@@ -700,7 +693,7 @@ if __name__ == '__main__':
 
         ("Disable automatic start at boot and disable automatic restart via systemd", [
             "Just reverts the 'Automatic start at boot and automatic restart via systemd' option of the Python helper",
-            "Disabling is done via '{}'".format(Calls.systemdDisable),
+            f"Disabling is done via '{Calls.systemdDisable}'",
             "If you did not create and install a systemd service file first, the disabling will fail"
         ], systemd_disable),
 
@@ -708,7 +701,7 @@ if __name__ == '__main__':
             "If you want to run graphical programs inside the Podman container and see them on your normal host system",
             "without using 'x2go', you need to grant the container access to your local X server",
             "This option does that, and repeats it automatically every time you login with any user on the host system",
-            "That is achieved by placing a shell script in '{}'".format(Calls.xhostFilePath),
+            f"That is achieved by placing a shell script in '{Calls.xhostFilePath}'",
             "NOTICE: You need to have 'xhost' installed on your host system to use that feature",
             "You may check that via executing the 'xhost' command in a terminal to see if the command exists"
         ], xhost_enable_start),
@@ -742,7 +735,7 @@ if __name__ == '__main__':
     are_all_f_names_from_cmd_valid = True
     for f_name in f_names_from_cmd:
         if f_name not in name_to_f:
-            podman_error("Invalid function name {} given via command line argument".format(f_name), new_line=False)
+            podman_error(f"Invalid function name {f_name} given via command line argument", new_line=False)
             are_all_f_names_from_cmd_valid = False
 
     # If all function names are valid, make sure the container isn't running and execute the functions in order
@@ -777,10 +770,10 @@ if __name__ == '__main__':
         # Let the user execute a thing
         podman_status("Choose, what you want to do next", new_line=True)
         for i in range(0, len(execution_possibilities)):
-            podman_note("Enter {} for: {}".format(
-                Colors.cyan(Colors.bold(i + 1)),
-                Colors.cyan(execution_possibilities[i][0])
-            ), new_line=True)
+            podman_note(
+                f"Enter {Colors.cyan(Colors.bold(i + 1))} for: {Colors.cyan(execution_possibilities[i][0])}",
+                new_line=True
+            )
             for description_line in execution_possibilities[i][1]:
                 podman_status(description_line)
         try:
