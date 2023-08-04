@@ -14,7 +14,7 @@ jobs:
       - uses: chartboost/ruff-action@v1
         with:
           src: "./src/main.py"
-          args: --line-length=120 --select E --select F --select W --select C90 --select UP
+          args: --line-length=120 --select E --select F --select W --select C90 --select UP --select YTT --select ASYNC --select BLE --select B --select A --select COM --select C4 --select DTZ --select T10 --select DJ --select EXE --select FA --select ICN --select G --select INP --select PIE --select PYI --select PT --select Q --select RSE --select RET --select SLF --select SLOT --select SIM
   build:
     name: Use the Python helper to test (almost) everything
     runs-on: self-hosted
