@@ -20,5 +20,5 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - name: Execute Python helper with command line arguments to test (almost) everything
+      - name: Execute Python helper with command-line arguments to test (almost) everything
         run: python3 src/main.py build_image systemd_create systemd_enable systemd_disable podman_reset print_debug_info exit_python_helper
