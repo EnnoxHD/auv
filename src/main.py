@@ -28,114 +28,6 @@ def repo_base_dir() -> str:
     return abspath(os_join(script_dir(), pardir))
 
 
-def run_command(
-        command: str, capture_output: bool = False, valid_return_codes: Optional[Sequence[int]] = None
-) -> CompletedProcess:
-    """
-    Runs a given command in the shell, and may additionally check for valid return codes
-
-    :param command:             The command to run
-    :param capture_output:      Set to True, if you want to suppress the output of the command but instead capture it
-                                You may retrieve the captured output via the object returned by this function
-                                STDOUT and STDERR are going to be combined into STDOUT if you specify True
-    :param valid_return_codes:  If you want to raise a RuntimeError in case of an invalid return code,
-                                provide a sequence of valid return codes to be checked against
-    :return:                    The subprocess.CompletedProcess object of the call
-                                See https://docs.python.org/3/library/subprocess.html#subprocess.CompletedProcess
-    """
-    if capture_output:
-        completed = run(command, shell=True, text=True, check=False, stdout=PIPE, stderr=STDOUT)
-    else:
-        completed = run(command, shell=True, text=True, check=False)
-
-    if valid_return_codes and completed.returncode not in valid_return_codes:
-        if capture_output:
-            podman_error("'{}' could not be executed correctly:\n   {}".format(
-                command, completed.stdout.strip()
-            ), new_line=True)
-        else:
-            podman_error("'{}' could not be executed correctly".format(
-                command
-            ), new_line=True)
-
-        raise RuntimeError
-
-    return completed
-
-
-class Calls:
-    """
-    Contains various commands to be used to handle our Podman Image and Container
-    """
-    # See: https://man7.org/linux/man-pages/man8/findmnt.8.html
-    mountInfoArgs = "sudo findmnt --json --all --target {}"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-info.1.html
-    # Calling `podman info` twice, because the first call may fail after changing/removing the graphRoot folder
-    podmanInfo = "sudo podman info >/dev/null 2>&1; sudo podman info --format=json"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman.1.html#root-value
-    podmanRoot = loads(run_command(podmanInfo, True, valid_return_codes=(0,)).stdout)["store"]["graphRoot"].strip()
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-system-reset.1.html
-    podmanReset = "sudo podman system reset --force"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-system-prune.1.html
-    pruneSystem = "sudo podman system prune --force"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-image-prune.1.html
-    pruneImage = "sudo podman image prune --force"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-rmi.1.html
-    rmAUVImage = "sudo podman image rm --force auv"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-rm.1.html
-    rmAUVContainer = "sudo podman container rm --force auv"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-save.1.html
-    saveImageArgs = "sudo podman save --output {} auv:latest"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-load.1.html
-    loadImageArgs = "sudo podman load --input {}"
-
-    # See: https://www.freedesktop.org/software/systemd/man/systemctl.html
-    systemdEnable = "sudo systemctl enable container-auv.service"
-    systemdDisable = "sudo systemctl disable container-auv.service"
-    systemdStarted = "sudo systemctl is-active container-auv.service"
-    systemdStart = "sudo systemctl start container-auv.service"
-    systemdStop = "sudo systemctl stop container-auv.service"
-    systemdReload = "sudo systemctl daemon-reload"
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html
-    serviceFilePath = "/etc/systemd/system/container-auv.service"
-    createService = "sudo podman generate systemd --name --new --restart-policy=always auv | " \
-                    "sudo tee {} > /dev/null".format(serviceFilePath)
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-inspect.1.html
-    containerRunning = "sudo podman container inspect auv"
-
-    # See: https://wiki.archlinux.org/index.php/Xhost
-    xhostFilePath = "/etc/profile.d/xhost.sh"
-    xhostEnableStart = "sudo cp --force {} {} && sudo chmod 555 {} && . {}" \
-                       "".format(os_join(script_dir(), 'xhost.sh'), xhostFilePath, xhostFilePath, xhostFilePath)
-    xhostDisableStop = "sudo rm --force {}".format(xhostFilePath)
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-build.1.html
-    buildImage = "sudo TMPDIR={} podman build --force-rm --no-cache --pull=always --tag auv:latest " \
-                 "--build-arg UID={} --build-arg GID={} --build-arg DISPLAY=$DISPLAY " \
-                 "-f Containerfile_{} {}".format(podmanRoot, getuid(), getgid(), machine(), repo_base_dir())
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-run.1.html
-    startContainerArgs = "sudo podman run -i -t --rm --name auv --privileged --network='host' --ipc='host' " \
-                         "--systemd='true' --volume={}:/entrypoint.sh --volume=/lib/modules:/lib/modules:ro " \
-                         "{} auv:latest".format(os_join(script_dir(), 'entrypoint.sh'), '{}')
-
-    # See: http://docs.podman.io/en/latest/markdown/podman-create.1.html
-    createContainerArgs = "sudo podman create -t --rm --name auv --privileged --network='host' --ipc='host' " \
-                          "--systemd='true' --volume={}:/entrypoint.sh --volume=/lib/modules:/lib/modules:ro " \
-                          "{} auv:latest".format(os_join(script_dir(), 'entrypoint.sh'), '{}')
-
-
 class Colors:
     """
     Class used for colored output
@@ -254,6 +146,114 @@ def podman_input(string: str, new_line: bool = False) -> str:
     :return:            The generated input message
     """
     return podman_message(string, new_line, False, Colors.light_magenta, "++")
+
+
+def run_command(
+        command: str, capture_output: bool = False, valid_return_codes: Optional[Sequence[int]] = None
+) -> CompletedProcess:
+    """
+    Runs a given command in the shell, and may additionally check for valid return codes
+
+    :param command:             The command to run
+    :param capture_output:      Set to True, if you want to suppress the output of the command but instead capture it
+                                You may retrieve the captured output via the object returned by this function
+                                STDOUT and STDERR are going to be combined into STDOUT if you specify True
+    :param valid_return_codes:  If you want to raise a RuntimeError in case of an invalid return code,
+                                provide a sequence of valid return codes to be checked against
+    :return:                    The subprocess.CompletedProcess object of the call
+                                See https://docs.python.org/3/library/subprocess.html#subprocess.CompletedProcess
+    """
+    if capture_output:
+        completed = run(command, shell=True, text=True, check=False, stdout=PIPE, stderr=STDOUT)
+    else:
+        completed = run(command, shell=True, text=True, check=False)
+
+    if valid_return_codes and completed.returncode not in valid_return_codes:
+        if capture_output:
+            podman_error("'{}' could not be executed correctly:\n   {}".format(
+                command, completed.stdout.strip()
+            ), new_line=True)
+        else:
+            podman_error("'{}' could not be executed correctly".format(
+                command
+            ), new_line=True)
+
+        raise RuntimeError
+
+    return completed
+
+
+class Calls:
+    """
+    Contains various commands to be used to handle our Podman Image and Container
+    """
+    # See: https://man7.org/linux/man-pages/man8/findmnt.8.html
+    mountInfoArgs = "sudo findmnt --json --all --target {}"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-info.1.html
+    # Calling `podman info` twice, because the first call may fail after changing/removing the graphRoot folder
+    podmanInfo = "sudo podman info >/dev/null 2>&1; sudo podman info --format=json"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman.1.html#root-value
+    podmanRoot = loads(run_command(podmanInfo, True, valid_return_codes=(0,)).stdout)["store"]["graphRoot"].strip()
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-system-reset.1.html
+    podmanReset = "sudo podman system reset --force"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-system-prune.1.html
+    pruneSystem = "sudo podman system prune --force"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-image-prune.1.html
+    pruneImage = "sudo podman image prune --force"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-rmi.1.html
+    rmAUVImage = "sudo podman image rm --force auv"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-rm.1.html
+    rmAUVContainer = "sudo podman container rm --force auv"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-save.1.html
+    saveImageArgs = "sudo podman save --output {} auv:latest"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-load.1.html
+    loadImageArgs = "sudo podman load --input {}"
+
+    # See: https://www.freedesktop.org/software/systemd/man/systemctl.html
+    systemdEnable = "sudo systemctl enable container-auv.service"
+    systemdDisable = "sudo systemctl disable container-auv.service"
+    systemdStarted = "sudo systemctl is-active container-auv.service"
+    systemdStart = "sudo systemctl start container-auv.service"
+    systemdStop = "sudo systemctl stop container-auv.service"
+    systemdReload = "sudo systemctl daemon-reload"
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html
+    serviceFilePath = "/etc/systemd/system/container-auv.service"
+    createService = "sudo podman generate systemd --name --new --restart-policy=always auv | " \
+                    "sudo tee {} > /dev/null".format(serviceFilePath)
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-inspect.1.html
+    containerRunning = "sudo podman container inspect auv"
+
+    # See: https://wiki.archlinux.org/index.php/Xhost
+    xhostFilePath = "/etc/profile.d/xhost.sh"
+    xhostEnableStart = "sudo cp --force {} {} && sudo chmod 555 {} && . {}" \
+                       "".format(os_join(script_dir(), 'xhost.sh'), xhostFilePath, xhostFilePath, xhostFilePath)
+    xhostDisableStop = "sudo rm --force {}".format(xhostFilePath)
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-build.1.html
+    buildImage = "sudo TMPDIR={} podman build --force-rm --no-cache --pull=always --tag auv:latest " \
+                 "--build-arg UID={} --build-arg GID={} --build-arg DISPLAY=$DISPLAY " \
+                 "-f Containerfile_{} {}".format(podmanRoot, getuid(), getgid(), machine(), repo_base_dir())
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-run.1.html
+    startContainerArgs = "sudo podman run -i -t --rm --name auv --privileged --network='host' --ipc='host' " \
+                         "--systemd='true' --volume={}:/entrypoint.sh --volume=/lib/modules:/lib/modules:ro " \
+                         "{} auv:latest".format(os_join(script_dir(), 'entrypoint.sh'), '{}')
+
+    # See: http://docs.podman.io/en/latest/markdown/podman-create.1.html
+    createContainerArgs = "sudo podman create -t --rm --name auv --privileged --network='host' --ipc='host' " \
+                          "--systemd='true' --volume={}:/entrypoint.sh --volume=/lib/modules:/lib/modules:ro " \
+                          "{} auv:latest".format(os_join(script_dir(), 'entrypoint.sh'), '{}')
 
 
 def acquire_sudo():
