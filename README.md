@@ -1,6 +1,6 @@
 # Arch Userland Virtualization (AUV)
 ## What is this good for?
-This project allows creating of highly customizable Arch Linux [Podman](https://github.com/containers/podman) images based on the [official Arch Linux Docker image](https://hub.docker.com/_/archlinux/).
+This project allows creating highly customizable Arch Linux [Podman](https://github.com/containers/podman) images based on the [official Arch Linux Docker image](https://hub.docker.com/_/archlinux/).
 
 Automatic installation of packages during building utilizes [pacman](https://wiki.archlinux.org/title/pacman) and [aurman](https://github.com/polygamma/aurman) with the supported "package sources" being:
 - [Official Arch Linux packages](https://archlinux.org/packages/) (installed via pacman)
@@ -49,9 +49,9 @@ You want to read (and change) it for a lot of reasons, some of them are:
   E.g. `python3 src/main.py build_image save_image exit_python_helper` would build the image, export it to a file and exit
 - To update all packages, just rebuild the image
 ### Connecting to containers
-After having started a container, a x2go connection is available at port `5910` on `localhost`
+After having started a container, a x2go connection is available on port `5910` on `localhost`
 
-This implies that an SSH connection is available at the same port, which means if you don't need a graphical interface, you may simply connect to containers via SSH instead of using x2go.
+This implies that an SSH connection is available on the same port, which means if you don't need a graphical interface, you may simply connect to containers via SSH instead of using x2go.
 
 > You may use `ssh pod@127.0.0.1 -p 5910` to connect to a container on the same host
 
@@ -87,7 +87,7 @@ You can switch between TTYs with `sudo chvt X` where `X` is the TTY to switch to
 
 You can start/stop LightDM (and thus the desktop environment) if you run `sudo systemctl start lightdm` or `sudo systemctl stop lightdm` from within a container.
 ### Execution of a shell script at container start
-You may use the shell script [entrypoint.sh](https://github.com/polygamma/auv/blob/main/src/entrypoint.sh) to include commands to be automatically executed when a container starts.
+You may use the shell script [entrypoint.sh](https://github.com/polygamma/auv/blob/main/src/entrypoint.sh) to include commands to be executed automatically when a container starts.
 The script is automatically available in containers at `/entrypoint.sh` and is being executed by a systemd service `entrypoint.service`
 
 > You may use `systemctl status entrypoint.service` (from within a container) to get information about the service
