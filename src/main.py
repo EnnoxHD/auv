@@ -697,7 +697,7 @@ if __name__ == "__main__":
 
         ("Debug", [
             "Prints debug information including the version of the Python helper",
-            "Include this information in every Issue or Merge Request you open on GitHub",
+            "Include this information in every Issue or Pull Request you open on GitHub",
         ], print_debug_info),
 
         ("Reset Podman environment", [
