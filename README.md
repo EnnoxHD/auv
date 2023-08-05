@@ -1,5 +1,6 @@
 # Arch Userland Virtualization (AUV)
 ## What is this good for?
+### Introduction
 This project allows creating highly customizable Arch Linux [Podman](https://github.com/containers/podman) images based on the [official Arch Linux Docker image](https://hub.docker.com/_/archlinux/).
 
 Automatic installation of packages during building utilizes [pacman](https://wiki.archlinux.org/title/pacman) and [aurman](https://github.com/polygamma/aurman) with the supported "package sources" being:
@@ -25,6 +26,15 @@ Some more features are:
 - Hot plugging works - this is achieved via [mdev](https://git.busybox.net/busybox/plain/docs/mdev.txt)
 - Additional parameters for [podman run](https://docs.podman.io/en/latest/markdown/podman-run.1.html) may be included e.g. to mount stuff into containers
 - Podman works inside the containers, so this project may be developed using this project
+### Example use cases
+#### Consistent environments across different devices
+An image built with this project may be distributed to various devices, ensuring a consistent environment across them.
+This applies to both development and deployment, allowing development in the exact environment where the software will eventually run.
+Switching between images/environments is straightforward using the Python helper's import and export functions.
+#### One environment for everything
+Since you can include basically anything in an image, the limitation of using this project is your own creativity.
+E.g. IDEs, compilers, libraries, browsers, drivers, and more can all be integrated into a single image.
+When you switch X2Go to fullscreen or use LightDM, it's nearly imperceptible that you're even working inside a Podman container.
 ## Prerequisites
 - Have [Podman installed](https://podman.io/docs/installation) on a Linux machine
 - Have [Python](https://www.python.org/) (version >= 3.7) installed (for the Python helper, which you probably want to use)
