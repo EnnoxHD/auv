@@ -1,4 +1,18 @@
 # Arch Userland Virtualization (AUV)
+## Table of contents
+- [Arch Userland Virtualization (AUV)](#arch-userland-virtualization-auv)
+  - [Table of contents](#table-of-contents)
+  - [What is this good for?](#what-is-this-good-for)
+    - [Introduction](#introduction)
+    - [Example use cases](#example-use-cases)
+  - [Prerequisites](#prerequisites)
+  - [How to use](#how-to-use)
+    - [Preface](#preface)
+    - [Overview](#overview)
+    - [Connecting to containers](#connecting-to-containers)
+    - [Using the desktop environment of the containers on headless hosts](#using-the-desktop-environment-of-the-containers-on-headless-hosts)
+    - [Execution of a shell script at container start](#execution-of-a-shell-script-at-container-start)
+    - [Additional arguments for `podman run` when starting a container](#additional-arguments-for-podman-run-when-starting-a-container)
 ## What is this good for?
 ### Introduction
 This project allows creating highly customizable Arch Linux [Podman](https://github.com/containers/podman) images based on the [official Arch Linux Docker image](https://hub.docker.com/_/archlinux/).
