@@ -488,9 +488,10 @@ def print_debug_info(exec_from_cmd: bool):
         ),
     )
 
-    print_and_input(
-        podman_input("Press Enter to return to the menu: "),
-    )
+    if not exec_from_cmd:
+        print_and_input(
+            podman_input("Press Enter to return to the menu: "),
+        )
 
 
 def systemd_started() -> bool:
