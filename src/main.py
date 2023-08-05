@@ -365,6 +365,9 @@ def build_image(exec_from_cmd: bool):
                 break
     except KeyboardInterrupt:
         clear_before_building_or_after_failed_building()
+        print_and_input(
+            podman_input("Press Enter to return to the menu: "),
+        )
 
 
 def prepare_starting() -> str:
@@ -483,6 +486,10 @@ def print_debug_info(exec_from_cmd: bool):
         "Mount info for graphRoot:\n{}".format(
             dumps(loads(run_command(Calls.mountInfoArgs.format(Calls.podmanRoot), True).stdout.strip()), indent=4),
         ),
+    )
+
+    print_and_input(
+        podman_input("Press Enter to return to the menu: "),
     )
 
 
