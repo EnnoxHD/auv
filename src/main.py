@@ -66,6 +66,12 @@ class Colors:
     def bold(*x: Any) -> str: return Colors.concat_str("\033[1m", *x, "\033[22m")
 
 
+def print_and_input(input_message: str, *prints_before_input: str):
+    for print_before_input in prints_before_input:
+        print(print_before_input)
+    input(input_message)
+
+
 def podman_message(string: str, new_line: bool, to_print: bool, color: Any, string_begin: str) -> str:
     """
     Generates a podman message of the following form: "color(string_begin) string"
@@ -604,9 +610,15 @@ def stop_systemd_service_or_container(is_systemd_service: bool):
     else:
         clear_after_building_or_before_starting()
 
-    podman_note(f"You need to re-start the {exec_type} with the Python helper in order to use it again", new_line=True)
-    podman_note("Or reboot the system if you have enabled auto-starting at boot")
-    input(podman_input("Press Enter to confirm that you have read that: "))
+    print_and_input(
+        podman_input("Press Enter to confirm that you have read that: "),
+        podman_note(
+            f"You need to re-start the {exec_type} with the Python helper in order to use it again",
+            new_line=True,
+            to_print=False,
+        ),
+        podman_note("Or reboot the system if you have enabled auto-starting at boot", to_print=False),
+    )
 
 
 if __name__ == "__main__":
