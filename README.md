@@ -43,6 +43,7 @@ You want to read (and change) it for a lot of reasons, some of them are:
 ### Overview
 - You may want to configure the folder, in which Podman saves stuff: graphroot in [storage.conf](https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md)
 - You want to edit the [pacman](https://github.com/polygamma/auv/blob/main/software/x86_64/pacman) and [aurman](https://github.com/polygamma/auv/blob/main/software/x86_64/aurman) files to configure the software to be included in the images
+- You may want to edit the [Containerfile_x86_64](https://github.com/polygamma/auv/blob/main/Containerfile_x86_64) file to your liking
 - The Python helper may be executed from the base directory of this project with `python3 src/main.py` and usage should be self-explanatory
 - To use the Python helper from the command-line only, look for `if __name__ == "__main__":` in [main.py](https://github.com/polygamma/auv/blob/main/src/main.py).
   The `execution_possibilities` list contains all possible arguments, e.g. `build_image` to build the image.
