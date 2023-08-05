@@ -28,10 +28,11 @@ Some more features are:
 ## Prerequisites
 - Have [Podman installed](https://podman.io/docs/installation) on a Linux machine
 - Have [Python](https://www.python.org/) (version >= 3.7) installed (for the Python helper, which you probably want to use)
-## Preface
+## How to use
+### Preface
 A lot is happening here, even though it may seem otherwise when using the Python helper.
-The [Containerfile_x86_64](https://github.com/polygamma/auv/blob/main/Containerfile_x86_64) file contains the whole build process.
-You want to read (and change) it for a lot of reasons, some of them are:
+[Containerfile_x86_64](https://github.com/polygamma/auv/blob/main/Containerfile_x86_64) contains the whole build process.
+You want to read (and maybe change) the file for a lot of reasons, some of them are:
 - Default passwords
 - User permissions
 - Disabled signature checking
@@ -39,11 +40,10 @@ You want to read (and change) it for a lot of reasons, some of them are:
 - Timezone
 - mdev default for new devices
 - Usage of environment variables given via the Python helper via `podman build --build-arg`
-## How to use
 ### Overview
 - You may want to configure the folder, in which Podman saves stuff: graphroot in [storage.conf](https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md)
 - You want to edit the [pacman](https://github.com/polygamma/auv/blob/main/software/x86_64/pacman) and [aurman](https://github.com/polygamma/auv/blob/main/software/x86_64/aurman) files to configure the software to be included in the images
-- You may want to edit the [Containerfile_x86_64](https://github.com/polygamma/auv/blob/main/Containerfile_x86_64) file to your liking
+- If you need "things" not provided by packages, or if packages require not just installation but also configuration, you should include all of that in [Containerfile_x86_64](https://github.com/polygamma/auv/blob/main/Containerfile_x86_64)
 - The Python helper may be executed from the base directory of this project with `python3 src/main.py` and usage should be self-explanatory
 - To use the Python helper from the command-line only, look for `if __name__ == "__main__":` in [main.py](https://github.com/polygamma/auv/blob/main/src/main.py).
   The `execution_possibilities` list contains all possible arguments, e.g. `build_image` to build the image.
