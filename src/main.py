@@ -366,16 +366,12 @@ class Terminal:
         print(to_print)
 
 
-def noop(string: str):
-    return
-
-
 # https://stackoverflow.com/a/40339397
 class Printing(Enum):
     """
     Enum class defining printing styles
     """
-    NO = partial(noop)
+    NO = partial(lambda *args: None)
     STANDARD = partial(print)
     MENU = partial(Terminal.content)
 
