@@ -389,68 +389,68 @@ def print_and_input(input_message: str, *prints_before_input: str):
     input(input_message)
 
 
-def podman_message(string: str, new_line: bool, printing: Printing, color: Any, string_begin: str) -> str:
+def podman_message(string: str, new_line: bool, printing_method: Printing, color: Any, string_begin: str) -> str:
     """
     Generates a podman message of the following form: "color(string_begin) string"
 
     :param string:          The string for the message
     :param new_line:        Whether to start the message with a newline or not
-    :param printing:        If the generated message should be printed and if so is it in a menu
+    :param printing_method: If the generated message should be printed and if so is it in a menu
     :param color:           The color of the Colors class to be used
     :param string_begin:    The string to be colored with the color parameter at the beginning of the message
     :return:                The generated message
     """
     to_return = ("\n" if new_line else "") + f"{color(string_begin)} {string}"
-    printing(to_return)
+    printing_method(to_return)
     return to_return
 
 
-def podman_status(string: str, new_line: bool = False, printing: Printing = Printing.STANDARD) -> str:
+def podman_status(string: str, new_line: bool = False, printing_method: Printing = Printing.STANDARD) -> str:
     """
     Generates a podman status of the following form: "Light green(~~) string"
 
-    :param string:      The string for the status message
-    :param new_line:    Whether to start the status with a newline or not
-    :param printing:    If the generated status should be printed and if so is it in a menu
-    :return:            The generated status
+    :param string:          The string for the status message
+    :param new_line:        Whether to start the status with a newline or not
+    :param printing_method: If the generated status should be printed and if so is it in a menu
+    :return:                The generated status
     """
-    return podman_message(string, new_line, printing, Colors.light_green, "~~")
+    return podman_message(string, new_line, printing_method, Colors.light_green, "~~")
 
 
-def podman_error(string: str, new_line: bool = False, printing: Printing = Printing.STANDARD) -> str:
+def podman_error(string: str, new_line: bool = False, printing_method: Printing = Printing.STANDARD) -> str:
     """
     Generates a podman error of the following form: "Red(!!) string"
 
-    :param string:      The string for the error message
-    :param new_line:    Whether to start the error with a newline or not
-    :param printing:    If the generated error should be printed and if so is it in a menu
-    :return:            The generated error
+    :param string:          The string for the error message
+    :param new_line:        Whether to start the error with a newline or not
+    :param printing_method: If the generated error should be printed and if so is it in a menu
+    :return:                The generated error
     """
-    return podman_message(string, new_line, printing, Colors.red, "!!")
+    return podman_message(string, new_line, printing_method, Colors.red, "!!")
 
 
-def podman_note(string: str, new_line: bool = False, printing: Printing = Printing.STANDARD) -> str:
+def podman_note(string: str, new_line: bool = False, printing_method: Printing = Printing.STANDARD) -> str:
     """
     Generates a podman note of the following form: "Light cyan(::) string"
 
-    :param string:      The string for the note message
-    :param new_line:    Whether to start the note with a newline or not
-    :param printing:    If the generated note should be printed and if so is it in a menu
-    :return:            The generated note
+    :param string:          The string for the note message
+    :param new_line:        Whether to start the note with a newline or not
+    :param printing_method: If the generated note should be printed and if so is it in a menu
+    :return:                The generated note
     """
-    return podman_message(string, new_line, printing, Colors.light_cyan, "::")
+    return podman_message(string, new_line, printing_method, Colors.light_cyan, "::")
 
 
-def podman_question(string: str, new_line: bool = False, printing: Printing = Printing.STANDARD) -> str:
+def podman_question(string: str, new_line: bool = False, printing_method: Printing = Printing.STANDARD) -> str:
     """
     Generates a podman question of the following form: "Light yellow(??) string"
 
-    :param string:      The string for the question message
-    :param new_line:    Whether to start the question with a newline or not
-    :param printing:    If the generated question should be printed and if so is it in a menu
-    :return:            The generated question
+    :param string:          The string for the question message
+    :param new_line:        Whether to start the question with a newline or not
+    :param printing_method: If the generated question should be printed and if so is it in a menu
+    :return:                The generated question
     """
-    return podman_message(string, new_line, printing, Colors.light_yellow, "??")
+    return podman_message(string, new_line, printing_method, Colors.light_yellow, "??")
 
 
 def podman_input(string: str, new_line: bool = False) -> str:
@@ -935,9 +935,9 @@ def stop_systemd_service_or_container(is_systemd_service: bool):
         podman_note(
             f"You need to re-start the {exec_type} with the Python helper in order to use it again",
             new_line=True,
-            printing=Printing.NO,
+            printing_method=Printing.NO,
         ),
-        podman_note("Or reboot the system if you have enabled auto-starting at boot", printing=Printing.NO),
+        podman_note("Or reboot the system if you have enabled auto-starting at boot", printing_method=Printing.NO),
     )
 
 
@@ -1090,15 +1090,15 @@ if __name__ == "__main__":
         Terminal.header("Arch Userland Virtualization (AUV) - Helper")
 
         # Let the user execute a thing
-        podman_status("Choose, what you want to do next", new_line=True, printing=Printing.MENU)
+        podman_status("Choose, what you want to do next", new_line=True, printing_method=Printing.MENU)
         for i in range(0, len(execution_possibilities)):
             podman_note(
                 f"Enter {Colors.cyan(Colors.bold(i + 1))} for: {Colors.cyan(execution_possibilities[i][0])}",
                 new_line=True,
-                printing=Printing.MENU,
+                printing_method=Printing.MENU,
             )
             for description_line in execution_possibilities[i][1]:
-                podman_status(description_line, printing=Printing.MENU)
+                podman_status(description_line, printing_method=Printing.MENU)
 
         Terminal.content()
         Terminal.divider()
