@@ -21,4 +21,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Execute Python helper with command-line arguments to test (almost) everything
-        run: coverage run src/main.py build_image systemd_create systemd_enable systemd_disable podman_reset print_debug_info exit_python_helper && coverage annotate && find . -type f -name "*,cover" -exec cat {} +
+        run: coverage run src/main.py build_image systemd_create systemd_enable systemd_disable podman_reset print_debug_info exit_python_helper && coverage annotate && find . -type f -name "*,cover" -exec cat {} + | awk '/^!/{printf "\033[31m%s\033[0m\n", $0; next} /^>/{printf "\033[32m%s\033[0m\n", $0; next} {print}'
