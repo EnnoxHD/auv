@@ -211,7 +211,7 @@ class Terminal:
         return len(displayable_string)
 
     @staticmethod
-    def cut(string: str, excess: int, insert_end="") -> str:
+    def cut(string: str, excess: int, insert_end: str = "") -> str:
         """
         Cuts a string to length preserving all ansi control characters in it
 
