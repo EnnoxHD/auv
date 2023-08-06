@@ -21,4 +21,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Execute Python helper with command-line arguments to test (almost) everything
-        run: coverage run --branch src/main.py build_image systemd_create systemd_enable systemd_disable podman_reset print_debug_info exit_python_helper && coverage annotate && coverage json --pretty-print && cat src/main.py,cover && cat coverage.json
+        run: coverage run src/main.py build_image systemd_create systemd_enable systemd_disable podman_reset print_debug_info exit_python_helper && coverage annotate && find . -type f -name "*,cover" -exec cat {} +
