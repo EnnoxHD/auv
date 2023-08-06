@@ -111,7 +111,7 @@ class Terminal:
         :return:    The terminal size as tuple (width/columns, height/rows)
         """
         size = get_terminal_size()
-        return (size.columns, size.lines)
+        return size.columns, size.lines
 
     @staticmethod
     def cursor_get_position() -> tuple[int, int]:
@@ -229,7 +229,7 @@ class Terminal:
             if part_len == 0:
                 cut_string_parts.append(part)
             else:
-                if (current_len == target_len):
+                if current_len == target_len:
                     continue
                 new_len = current_len + part_len
                 if new_len <= target_len:
