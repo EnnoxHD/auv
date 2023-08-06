@@ -948,6 +948,7 @@ if __name__ == "__main__":
     # We want sudo priv
     acquire_sudo()
 
+    # Clear the terminal and the scroll buffer to focus on optional upcoming messages
     Terminal.clear(True)
 
     # Set the execution possibilities for the user
@@ -1086,10 +1087,13 @@ if __name__ == "__main__":
             stop_systemd_service_or_container(is_systemd_service=False)
             continue
 
+        # Clear the terminal to prepare to display the menu at the top
+        # but keep the scroll buffer to give the user access to recent messages
         Terminal.clear(False)
+        # Print the header of the menu
         Terminal.header("Arch Userland Virtualization (AUV) - Helper")
 
-        # Let the user execute a thing
+        # Print the available choices
         podman_status("Choose, what you want to do next", new_line=True, printing_method=Printing.MENU)
         for i in range(0, len(execution_possibilities)):
             podman_note(
@@ -1100,9 +1104,12 @@ if __name__ == "__main__":
             for description_line in execution_possibilities[i][1]:
                 podman_status(description_line, printing_method=Printing.MENU)
 
+        # Print a blank line in the menu after the available choices to separate them from the divider
         Terminal.content()
+        # Print a horizontal line to divide the available choices and the user input
         Terminal.divider()
         try:
+            # Let the user choose an operation
             Terminal.content(podman_input("Enter your choice: "), as_input=True)
             input_position = Terminal.cursor_get_position()
             print()
@@ -1110,8 +1117,11 @@ if __name__ == "__main__":
             offset = Terminal.calculate_row_offset(input_position, additional_rows=2)
             Terminal.cursor_set_position(input_position, row_offset=offset)
             user_choice = int(input())
+            # Validate the user's choice
             if 1 <= user_choice <= len(execution_possibilities):
+                # Clear the terminal and scroll buffer to focus on messages of the upcoming operation
                 Terminal.clear(True)
+                # Execute a thing
                 execution_possibilities[user_choice - 1][2](exec_from_cmd=False)
             else:
                 raise IndexError
