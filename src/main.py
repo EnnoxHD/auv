@@ -395,7 +395,7 @@ def podman_message(string: str, new_line: bool, printing_method: Printing, color
 
     :param string:          The string for the message
     :param new_line:        Whether to start the message with a newline or not
-    :param printing_method: If the generated message should be printed and if so is it in a menu
+    :param printing_method: The method used to print the message in a specific style
     :param color:           The color of the Colors class to be used
     :param string_begin:    The string to be colored with the color parameter at the beginning of the message
     :return:                The generated message
@@ -411,7 +411,7 @@ def podman_status(string: str, new_line: bool = False, printing_method: Printing
 
     :param string:          The string for the status message
     :param new_line:        Whether to start the status with a newline or not
-    :param printing_method: If the generated status should be printed and if so is it in a menu
+    :param printing_method: The method used to print the status in a specific style
     :return:                The generated status
     """
     return podman_message(string, new_line, printing_method, Colors.light_green, "~~")
@@ -423,7 +423,7 @@ def podman_error(string: str, new_line: bool = False, printing_method: Printing 
 
     :param string:          The string for the error message
     :param new_line:        Whether to start the error with a newline or not
-    :param printing_method: If the generated error should be printed and if so is it in a menu
+    :param printing_method: The method used to print the error in a specific style
     :return:                The generated error
     """
     return podman_message(string, new_line, printing_method, Colors.red, "!!")
@@ -435,7 +435,7 @@ def podman_note(string: str, new_line: bool = False, printing_method: Printing =
 
     :param string:          The string for the note message
     :param new_line:        Whether to start the note with a newline or not
-    :param printing_method: If the generated note should be printed and if so is it in a menu
+    :param printing_method: The method used to print the note in a specific style
     :return:                The generated note
     """
     return podman_message(string, new_line, printing_method, Colors.light_cyan, "::")
@@ -447,7 +447,7 @@ def podman_question(string: str, new_line: bool = False, printing_method: Printi
 
     :param string:          The string for the question message
     :param new_line:        Whether to start the question with a newline or not
-    :param printing_method: If the generated question should be printed and if so is it in a menu
+    :param printing_method: The method used to print the question in a specific style
     :return:                The generated question
     """
     return podman_message(string, new_line, printing_method, Colors.light_yellow, "??")
