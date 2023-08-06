@@ -400,7 +400,7 @@ def podman_message(string: str, new_line: bool, printing: Printing, color: Any, 
     :param string_begin:    The string to be colored with the color parameter at the beginning of the message
     :return:                The generated message
     """
-    to_return = "\n" if new_line else "" + f"{color(string_begin)} {string}"
+    to_return = ("\n" if new_line else "") + f"{color(string_begin)} {string}"
     printing(to_return)
     return to_return
 
