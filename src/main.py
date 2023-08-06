@@ -1116,7 +1116,6 @@ if __name__ == "__main__":
             if 1 <= user_choice <= len(execution_possibilities):
                 Terminal.clear(True)
                 execution_possibilities[user_choice - 1][2](exec_from_cmd=False)
-                input(podman_input("Press Enter to return to the menu: "))
             else:
                 raise IndexError
         except (ValueError, IndexError):
