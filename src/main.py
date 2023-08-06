@@ -373,7 +373,10 @@ class Terminal:
 # https://stackoverflow.com/a/40339397
 class Printing(Enum):
     """
-    Enum class defining printing styles
+    Enum class defining the following available printing styles:
+        NO          Prints nothing
+        STANDARD    Prints an unmodified version of the specified string using the print() function
+        MENU        Prints a modified and decorated version of the specified string, suitable for display in a menu
     """
     NO = partial(lambda *args: None)
     STANDARD = partial(print)
