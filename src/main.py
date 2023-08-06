@@ -78,6 +78,7 @@ class Terminal:
     """
     Class used for terminal manipulation
     """
+
     @staticmethod
     def print_plain(string: str):
         """
@@ -139,7 +140,7 @@ class Terminal:
 
         current_position = (1, 1)
         if position:
-           current_position = (int(position.group("column")), int(position.group("row")))
+            current_position = (int(position.group("column")), int(position.group("row")))
         return current_position
 
     @staticmethod
@@ -206,7 +207,7 @@ class Terminal:
         return len(displayable_string)
 
     @staticmethod
-    def cut(string: str, excess: int, insert_end = "") -> str:
+    def cut(string: str, excess: int, insert_end="") -> str:
         """
         Cuts a string to length preserving all ansi control characters in it
 
@@ -228,7 +229,7 @@ class Terminal:
             if part_len == 0:
                 cut_string_parts.append(part)
             else:
-                if(current_len == target_len):
+                if (current_len == target_len):
                     continue
                 new_len = current_len + part_len
                 if new_len <= target_len:
@@ -266,7 +267,7 @@ class Terminal:
         ellipsis = "..."
         ellipsis_len = len(ellipsis)
         if ellipsis_len >= length:
-            return ellipsis[ellipsis_len - length :]
+            return ellipsis[ellipsis_len - length:]
 
         overshoot = string_len - length + ellipsis_len
         return Terminal.cut(string, overshoot, insert_end=ellipsis)
