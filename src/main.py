@@ -935,9 +935,9 @@ def stop_systemd_service_or_container(is_systemd_service: bool):
         podman_note(
             f"You need to re-start the {exec_type} with the Python helper in order to use it again",
             new_line=True,
-            to_print=False,
+            printing=Printing.NO,
         ),
-        podman_note("Or reboot the system if you have enabled auto-starting at boot", to_print=False),
+        podman_note("Or reboot the system if you have enabled auto-starting at boot", printing=Printing.NO),
     )
 
 
