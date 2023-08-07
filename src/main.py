@@ -1115,11 +1115,13 @@ if __name__ == "__main__":
             # Let the user choose an operation
             Terminal.content(podman_input("Enter your choice: "), as_input=True)
             input_position = Terminal.cursor_get_position()
-            print()
+            Terminal.print_plain("\n")
             Terminal.footer()
+            end_position = Terminal.cursor_get_position()
             offset = Terminal.calculate_row_offset(input_position, additional_rows=2)
             Terminal.cursor_set_position(input_position, row_offset=offset)
             user_choice = int(input())
+            Terminal.cursor_set_position(end_position)
             # Validate the user's choice
             if 1 <= user_choice <= len(execution_possibilities):
                 # Clear the terminal and scroll buffer to focus on messages of the upcoming operation
@@ -1129,7 +1131,7 @@ if __name__ == "__main__":
             else:
                 raise IndexError
         except (ValueError, IndexError):
-            podman_error("That choice was not valid", new_line=True)
+            podman_error("That choice was not valid")
         except EOFError:
             podman_error("We caught an EOFError, which is not your fault, just restart the script", new_line=True)
             exit(1)
