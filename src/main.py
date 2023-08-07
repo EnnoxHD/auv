@@ -166,12 +166,12 @@ class Terminal:
         return num_of_rows
 
     @staticmethod
-    def cursor_set_position(position: tuple[int, int], row_offset: int = 0):
+    def cursor_set_position(position: tuple[int, int], additional_rows: int = 0):
         """
         Sets the cursor to the given position inside the terminal
 
-        :param position:    The cursor position to move the cursor to as tuple (column, row)
-        :param row_offset:  Offset to accommodate for new rows, e.g. printed lines after the input
+        :param position:            The cursor position to move the cursor to as tuple (column, row)
+        :param additional_rows:     The number of rows added after the initial position
         """
         # https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
         column = position[0]
@@ -182,6 +182,7 @@ class Terminal:
         if row <= 0:
             row = 1
 
+        row_offset = Terminal.calculate_row_offset(position, additional_rows)
         Terminal.print_plain(f"\033[{row + row_offset};{column}H")
 
     @staticmethod
@@ -1132,8 +1133,7 @@ if __name__ == "__main__":
             input_pos = Terminal.prepare_input(podman_input("Enter your choice: "), new_line=True)
             Terminal.footer()
             end_pos = Terminal.cursor_get_position()
-            offset = Terminal.calculate_row_offset(input_pos, additional_rows=2)
-            Terminal.cursor_set_position(input_pos, row_offset=offset)
+            Terminal.cursor_set_position(input_pos, additional_rows=2)
             user_choice = int(input())
             Terminal.cursor_set_position(end_pos)
             # Validate the user's choice
