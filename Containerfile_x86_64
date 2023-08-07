@@ -174,7 +174,7 @@ WORKDIR /
 USER pod
 WORKDIR /home/pod
 COPY /software/x86_64/aurman /aurman_x86_64
-RUN aurman -Syu --noedit --pgp_fetch --skip_news --noconfirm --skip_new_locations --overwrite \* \
+RUN aurman -S --noedit --pgp_fetch --skip_news --noconfirm --skip_new_locations --overwrite \* \
     $(eval echo $(sed 's/#.*$//' /aurman_x86_64)) \
     && yes | sudo pacman -Scc && rm -rf /home/pod/.cache
 USER root
