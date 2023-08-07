@@ -85,7 +85,7 @@ To use x2go, the x2goclient is needed on the client side (the container is the s
 Install instructions are found [here](https://wiki.x2go.org/doku.php/doc:installation:x2goclient).
 
 In short:
-*  Arch Linux: `sudo pacman -S x2goclient`
+*  Arch Linux: `aurman -S x2goclient`
 *  Ubuntu: `sudo apt-get install x2goclient`
 
 When creating a session in the x2goclient, the following options in the Session tab need to be set:
