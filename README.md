@@ -19,7 +19,7 @@ This project allows creating highly customizable Arch Linux [Podman](https://git
 
 Automatic installation of packages during building utilizes [pacman](https://wiki.archlinux.org/title/pacman) and [aurman](https://github.com/polygamma/aurman) with the supported "package sources" being:
 - [Official Arch Linux packages](https://archlinux.org/packages/) (installed via pacman)
-- [Chaotic-AUR](https://aur.chaotic.cx/) (installed via pacman)
+- [Chaotic-AUR](https://archlinux.pkgs.org/rolling/chaotic-aur-x86_64/) (installed via pacman)
 - [Arch User Repository](https://aur.archlinux.org/packages) (installed via aurman)
 
 Images will also contain:
