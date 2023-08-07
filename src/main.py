@@ -353,6 +353,22 @@ class Terminal:
         print(to_print)
 
     @staticmethod
+    def prepare_input(string: str, new_line: bool = False) -> tuple[int, int]:
+        """
+        Prints the specified string and then records the cursor position.
+        The cursor is then optionally moved to the next line.
+
+        :param string:      The string to print
+        :param new_line:    Whether to move the cursor to the next line
+        :return:            The cursor postition after priting the string
+        """
+        Terminal.content(string, as_input=True)
+        input_position = Terminal.cursor_get_position()
+        if new_line:
+            Terminal.print_plain("\n")
+        return input_position
+
+    @staticmethod
     def footer():
         """
         Prints a simple footer in the terminal
@@ -1113,15 +1129,13 @@ if __name__ == "__main__":
         Terminal.divider()
         try:
             # Let the user choose an operation
-            Terminal.content(podman_input("Enter your choice: "), as_input=True)
-            input_position = Terminal.cursor_get_position()
-            Terminal.print_plain("\n")
+            input_pos = Terminal.prepare_input(podman_input("Enter your choice: "), new_line=True)
             Terminal.footer()
-            end_position = Terminal.cursor_get_position()
-            offset = Terminal.calculate_row_offset(input_position, additional_rows=2)
-            Terminal.cursor_set_position(input_position, row_offset=offset)
+            end_pos = Terminal.cursor_get_position()
+            offset = Terminal.calculate_row_offset(input_pos, additional_rows=2)
+            Terminal.cursor_set_position(input_pos, row_offset=offset)
             user_choice = int(input())
-            Terminal.cursor_set_position(end_position)
+            Terminal.cursor_set_position(end_pos)
             # Validate the user's choice
             if 1 <= user_choice <= len(execution_possibilities):
                 # Clear the terminal and scroll buffer to focus on messages of the upcoming operation
