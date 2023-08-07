@@ -370,6 +370,22 @@ class Terminal:
         return input_position
 
     @staticmethod
+    def input(input_pos: tuple[int, int], additional_rows: int = 0) -> str:
+        """
+        Moves the cursor to the specified position and then caputures user input.
+        It also saves the original position of the cursor beforehand and restores it afterwards.
+
+        :param input_pos:       The input position at which to display and capture user input
+        :param additional_rows: The number of rows added after the input position
+        :return:                The captured user input
+        """
+        saved_pos = Terminal.cursor_get_position()
+        Terminal.cursor_set_position(input_pos, additional_rows)
+        captured_input = input()
+        Terminal.cursor_set_position(saved_pos)
+        return captured_input
+
+    @staticmethod
     def footer():
         """
         Prints a simple footer in the terminal
@@ -1132,11 +1148,7 @@ if __name__ == "__main__":
             # Let the user choose an operation
             input_pos = Terminal.prepare_input(podman_input("Enter your choice: "), new_line=True)
             Terminal.footer()
-            end_pos = Terminal.cursor_get_position()
-            Terminal.cursor_set_position(input_pos, additional_rows=2)
-            raw_user_choice = input()
-            Terminal.cursor_set_position(end_pos)
-            user_choice = int(raw_user_choice)
+            user_choice = int(Terminal.input(input_pos, additional_rows=2))
             # Validate the user's choice
             if 1 <= user_choice <= len(execution_possibilities):
                 # Clear the terminal and scroll buffer to focus on messages of the upcoming operation
