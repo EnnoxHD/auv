@@ -370,7 +370,7 @@ class Terminal:
         return input_position
 
     @staticmethod
-    def input(input_pos: tuple[int, int], additional_rows: int = 0) -> str:
+    def capture_input(input_pos: tuple[int, int], additional_rows: int = 0) -> str:
         """
         Moves the cursor to the specified position and then caputures user input.
         It also saves the original position of the cursor beforehand and restores it afterwards.
@@ -1148,7 +1148,7 @@ if __name__ == "__main__":
             # Let the user choose an operation
             input_pos = Terminal.prepare_input(podman_input("Enter your choice: "), new_line=True)
             Terminal.footer()
-            user_choice = int(Terminal.input(input_pos, additional_rows=2))
+            user_choice = int(Terminal.capture_input(input_pos, additional_rows=2))
             # Validate the user's choice
             if 1 <= user_choice <= len(execution_possibilities):
                 # Clear the terminal and scroll buffer to focus on messages of the upcoming operation
