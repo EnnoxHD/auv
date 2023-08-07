@@ -1134,8 +1134,9 @@ if __name__ == "__main__":
             Terminal.footer()
             end_pos = Terminal.cursor_get_position()
             Terminal.cursor_set_position(input_pos, additional_rows=2)
-            user_choice = int(input())
+            raw_user_choice = input()
             Terminal.cursor_set_position(end_pos)
+            user_choice = int(raw_user_choice)
             # Validate the user's choice
             if 1 <= user_choice <= len(execution_possibilities):
                 # Clear the terminal and scroll buffer to focus on messages of the upcoming operation
