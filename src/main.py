@@ -229,7 +229,7 @@ class Calls:
     # See: http://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html
     serviceFilePath = "/etc/systemd/system/container-auv.service"
     createService = "sudo podman generate systemd --name --new --restart-policy=always auv | " \
-                    "sudo tee {} > /dev/null".format(serviceFilePath)
+                    f"sudo tee {serviceFilePath} > /dev/null"
 
     # See: http://docs.podman.io/en/latest/markdown/podman-inspect.1.html
     containerRunning = "sudo podman container inspect auv"
@@ -241,9 +241,9 @@ class Calls:
     xhostDisableStop = f"sudo rm --force {xhostFilePath}"
 
     # See: http://docs.podman.io/en/latest/markdown/podman-build.1.html
-    buildImage = "sudo TMPDIR={} podman build --force-rm --no-cache --pull=always --tag auv:latest " \
-                 "--build-arg UID={} --build-arg GID={} --build-arg DISPLAY=$DISPLAY " \
-                 "-f Containerfile_{} {}".format(podmanRoot, getuid(), getgid(), machine(), repo_base_dir())
+    buildImage = f"sudo TMPDIR={podmanRoot} podman build --force-rm --no-cache --pull=always --tag auv:latest " \
+                 f"--build-arg UID={getuid()} --build-arg GID={getgid()} --build-arg DISPLAY=$DISPLAY " \
+                 f"-f Containerfile_{machine()} {repo_base_dir()}"
 
     # See: http://docs.podman.io/en/latest/markdown/podman-run.1.html
     startContainerArgs = "sudo podman run -i -t --rm --name auv --privileged --network='host' --ipc='host' " \
