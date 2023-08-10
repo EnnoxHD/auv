@@ -1,4 +1,5 @@
-from collections.abc import Sequence
+from __future__ import annotations
+
 from json import loads, dumps, JSONDecodeError
 from os import getuid, getgid
 from os.path import abspath, dirname, pardir
@@ -8,7 +9,10 @@ from shlex import quote as shlex_quote
 from subprocess import run, CompletedProcess, PIPE, STDOUT
 from sys import exit, argv
 from threading import Thread
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def script_dir() -> str:
