@@ -269,10 +269,10 @@ def acquire_sudo():
         import time
 
         while True:
-            run(["sudo", "--non-interactive", "-v"])
+            run(["sudo", "--non-interactive", "-v"], check=False)
             time.sleep(60)
 
-    if run(["sudo", "-v"]).returncode != 0:
+    if run(["sudo", "-v"], check=False).returncode != 0:
         exit("--- EXITING - acquire sudo failed - EXITING ---")
 
     t = Thread(target=_sudo_loop)
@@ -466,7 +466,7 @@ def print_debug_info(exec_from_cmd: bool):
         run(
             r"""git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'""",
             cwd=repo_base_dir(),
-            shell=True, text=True, capture_output=True,
+            shell=True, text=True, capture_output=True, check=False,
         ).stdout.strip(),
     ), new_line=True)
 
