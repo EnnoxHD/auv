@@ -1,8 +1,13 @@
-from collections.abc import Callable
+from __future__ import annotations
+
 from re import compile, match, split
 from shutil import get_terminal_size
 from sys import stdout, stdin
 from termios import tcgetattr, tcsetattr, ECHO, ICANON, TCSAFLUSH
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 class Terminal:
